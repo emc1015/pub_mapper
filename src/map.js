@@ -1,3 +1,5 @@
+var x_pos = 2386;
+var y_pos = 3110;
 function request_tile(x,y,zoom,element) {
     var request = new XMLHttpRequest();
     var request_url = new URL(`https://api.openrouteservice.org/mapsurfer/${zoom}/${x}/${y}.png?api_key=5b3ce3597851110001cf62484bf1694d7cec49f6bb7482f9d4ac8153`);
@@ -18,4 +20,11 @@ function request_tile(x,y,zoom,element) {
 
     request.send();
 };
-request_tile(2386, 3110,13);
+window.onload = function(){
+    request_tile(x_pos, y_pos,13,document.getElementById('image00'));
+    request_tile(x_pos + 1, y_pos,13,document.getElementById('image01'));
+    request_tile(x_pos + 2, y_pos,13,document.getElementById('image02'));
+    request_tile(x_pos , y_pos + 1,13,document.getElementById('image10'));
+    request_tile(x_pos + 1, y_pos + 1,13,document.getElementById('image11'));
+    request_tile(x_pos + 2, y_pos + 1,13,document.getElementById('image12'));
+};
