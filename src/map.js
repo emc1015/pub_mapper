@@ -21,10 +21,29 @@ function request_tile(x,y,zoom,element) {
     request.send();
 };
 window.onload = function(){
+    loadMap();
+};
+function panLeft() {
+    x_pos -= 1;
+    loadMap();
+};
+function panRight() {
+    x_pos += 1;
+    loadMap();
+};
+function panUp() {
+    y_pos -= 1;
+    loadMap();
+};
+function panDown() {
+    y_pos += 1;
+    loadMap();
+};
+function loadMap() {
     request_tile(x_pos, y_pos,13,document.getElementById('image00'));
     request_tile(x_pos + 1, y_pos,13,document.getElementById('image01'));
     request_tile(x_pos + 2, y_pos,13,document.getElementById('image02'));
     request_tile(x_pos , y_pos + 1,13,document.getElementById('image10'));
     request_tile(x_pos + 1, y_pos + 1,13,document.getElementById('image11'));
     request_tile(x_pos + 2, y_pos + 1,13,document.getElementById('image12'));
-};
+}
