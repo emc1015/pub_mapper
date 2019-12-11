@@ -14,11 +14,23 @@ const glassboro = {
     lat: 39.702892,
     lon: -75.111839
 };
+const alcyon = {
+    lat:39.729042,
+    lon: -75.145095
+};
+const orchard = {
+    lat: 39.703843,
+    lon: -75.078589
+}
 var mapCoords = {
     x: 0,
     y: 0,
     zoom: 13
 };
+var waypoint = {
+    lon: 0,
+    lat: 0
+}
 //TODO: transform via geocoords
 var geoCoords = {
     lat:39.706073,
@@ -45,7 +57,10 @@ function request_path(point_a,point_b){
         if (this.readyState === 4) {
             //console.log('Status:', this.status);
             //console.log('Headers:', this.getAllResponseHeaders());
-            //console.log('Body:', this.responseText);
+            let coords = JSON.parse(this.responseText).features[0].geometry.coordinates[0];
+            console.log('Coords:', coords);
+            waypoint.lon = coords[0];
+            waypoint.lat = coords[1];
         }
     };
 
@@ -72,18 +87,15 @@ function request_tile(x,y,zoom,element) {
     request.send();
 };
 window.onload = function(){
+    var canvas = document.getElementById("canvas11");
     updateOrigin(geoCoords.lat,geoCoords.lon,geoCoords.zoom);
+    console.log(request_path(landmark,crown));
+    console.log(waypoint);
     loadMap();
-    request_path(landmark,crown);
    // console.log(geoCoords);
    // console.log(tile2long(mapCoords.x,mapCoords.y),",",tile2lat(mapCoords.y,mapCoords.zoom));
-    let lat_offset = geoCoords.lat - tile2lat(mapCoords.y,mapCoords.zoom);
-    let lat_arc = tile2lat(mapCoords.y + 1, mapCoords.zoom) - tile2lat(mapCoords.y, mapCoords.zoom);
-    let lon_offset = geoCoords.lon - tile2long(mapCoords.x,mapCoords.zoom);
-    let lon_arc = tile2long(mapCoords.x + 1, mapCoords.zoom) - tile2long(mapCoords.x, mapCoords.zoom);
-    let x_offset = lon_offset/lon_arc;
-    let y_offset = lat_offset/lat_arc;
-    draw(x_offset,y_offset);
+
+
 };
 function panLeft() {
     mapCoords.x -= 1;
@@ -102,12 +114,23 @@ function panDown() {
     loadMap();
 };
 function zoomIn() {
-    updateOrigin(tile2lat(mapCoords.y,mapCoords.zoom ),tile2long(mapCoords.x,mapCoords.zoom),geoCoords.zoom + 1);
+    let origin = find_map_center()
+    updateOrigin(origin.lat,origin.lon,geoCoords.zoom + 1);
     loadMap();
 }
 function zoomOut() {
-    updateOrigin(tile2lat(mapCoords.y,mapCoords.zoom),tile2long(mapCoords.x,mapCoords.zoom),geoCoords.zoom - 1);
+    let origin = find_map_center()
+    updateOrigin(origin.lat,origin.lon,geoCoords.zoom - 1);
     loadMap();
+}
+function find_map_center(){
+    let lat_arc = tile2lat(mapCoords.y + 1, mapCoords.zoom) - tile2lat(mapCoords.y, mapCoords.zoom);
+    let lon_arc = tile2long(mapCoords.x + 1, mapCoords.zoom) - tile2long(mapCoords.x,mapCoords.zoom);
+    let center_x = lon_arc/2 + tile2long(mapCoords.x,mapCoords.zoom);
+    let center_y = lat_arc/2 + tile2lat(mapCoords.y,mapCoords.zoom);
+    let result = {lat: center_y,lon: center_x};
+    console.log("map center: ", result)
+    return result;
 }
 function loadMap() {
     request_tile(mapCoords.x - 1, mapCoords.y - 1,mapCoords.zoom,document.getElementById('image00'));
@@ -119,6 +142,7 @@ function loadMap() {
     request_tile(mapCoords.x - 1, mapCoords.y + 1,mapCoords.zoom,document.getElementById('image20'));
     request_tile(mapCoords.x, mapCoords.y + 1,mapCoords.zoom,document.getElementById('image21'));
     request_tile(mapCoords.x + 1, mapCoords.y + 1,mapCoords.zoom,document.getElementById('image22'));
+    drawOverlay();
 }
 
 function long2tile(lon,zoom) { return (Math.floor((lon+180)/360*Math.pow(2,zoom))); };
@@ -132,8 +156,7 @@ function tile2lat(y,z) {
     return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
 }
 
-function draw(x,y) {
-    var canvas = document.getElementById("canvas11");
+function draw(x,y,canvas) {
     canvas.height = 256;
     canvas.width = 256;
     var ctx = canvas.getContext("2d");
@@ -143,4 +166,25 @@ function draw(x,y) {
     ctx.moveTo(0,y * 256);
     ctx.lineTo(256,y * 256);
     ctx.stroke();
+}
+function drawOverlay() {
+    let poi = find_map_center();
+    let geo_lon_low_bound = tile2long(mapCoords.x,mapCoords.zoom);
+    let geo_lon_high_bound = tile2long(mapCoords.x + 1,mapCoords.zoom);
+    let geo_lat_high_bound = tile2lat(mapCoords.y,mapCoords.zoom);
+    let geo_lat_low_bound = tile2lat(mapCoords.y + 1,mapCoords.zoom);
+    let lat_offset = poi.lat - tile2lat(mapCoords.y,mapCoords.zoom);
+    let lat_arc = tile2lat(mapCoords.y + 1, mapCoords.zoom) - tile2lat(mapCoords.y, mapCoords.zoom);
+    let lon_offset = poi.lon - geo_lon_low_bound;
+    let lon_arc = tile2long(mapCoords.x + 1, mapCoords.zoom) - geo_lon_low_bound;
+    let x_offset = lon_offset/lon_arc;
+    let y_offset = lat_offset/lat_arc;
+    let canvas = document.getElementById("canvas11");
+    //TODO:fix to use absolute landmarks
+    if(poi.lat > geo_lat_low_bound && poi.lat < geo_lat_high_bound
+        && poi.lon > geo_lon_low_bound && poi.lon < geo_lon_high_bound){
+        draw(x_offset,y_offset,canvas);
+    }else{
+        canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    }
 }
