@@ -1,11 +1,19 @@
 const landmark = {
     lat:39.706848,
     lon: -75.110462
-}
+};
 const crown = {
     lat: 39.706184,
     lon: -75.108006
-}
+};
+const bunce_cirle = {
+    lat:39.706073,
+    lon: -75.121396
+};
+const glassboro = {
+    lat: 39.702892,
+    lon: -75.111839
+};
 var mapCoords = {
     x: 0,
     y: 0,
@@ -13,8 +21,8 @@ var mapCoords = {
 };
 //TODO: transform via geocoords
 var geoCoords = {
-    lat: 39.702892,
-    lon: -75.111839,
+    lat:39.706073,
+    lon: -75.121396,
     zoom: 13
 };
 //TODO:refactor to use geo coords natively
@@ -35,9 +43,9 @@ function request_path(point_a,point_b){
 
     request.onreadystatechange = function () {
         if (this.readyState === 4) {
-            console.log('Status:', this.status);
-            console.log('Headers:', this.getAllResponseHeaders());
-            console.log('Body:', this.responseText);
+            //console.log('Status:', this.status);
+            //console.log('Headers:', this.getAllResponseHeaders());
+            //console.log('Body:', this.responseText);
         }
     };
 
@@ -53,10 +61,10 @@ function request_tile(x,y,zoom,element) {
 
     request.onreadystatechange = function () {
         if (this.readyState === 4) {
-            console.log('Status:', this.status);
-            console.log('Headers:', this.getAllResponseHeaders());
-            console.log('Body:', this.responseText);
-            console.log('url: ', this.responseURL);
+            //console.log('Status:', this.status);
+            //console.log('Headers:', this.getAllResponseHeaders());
+            //console.log('Body:', this.responseText);
+            //console.log('url: ', this.responseURL);
             element.setAttribute('src', this.responseURL);
         }
     };
@@ -67,10 +75,15 @@ window.onload = function(){
     updateOrigin(geoCoords.lat,geoCoords.lon,geoCoords.zoom);
     loadMap();
     request_path(landmark,crown);
-    draw();
-    console.log(geoCoords);
-    console.log(tile2long(mapCoords.x,mapCoords.y),",",tile2lat(mapCoords.y,mapCoords.zoom));
-    console.log(geoCoords.lat - tile2lat(mapCoords.y));
+   // console.log(geoCoords);
+   // console.log(tile2long(mapCoords.x,mapCoords.y),",",tile2lat(mapCoords.y,mapCoords.zoom));
+    let lat_offset = geoCoords.lat - tile2lat(mapCoords.y,mapCoords.zoom);
+    let lat_arc = tile2lat(mapCoords.y + 1, mapCoords.zoom) - tile2lat(mapCoords.y, mapCoords.zoom);
+    let lon_offset = geoCoords.lon - tile2long(mapCoords.x,mapCoords.zoom);
+    let lon_arc = tile2long(mapCoords.x + 1, mapCoords.zoom) - tile2long(mapCoords.x, mapCoords.zoom);
+    let x_offset = lon_offset/lon_arc;
+    let y_offset = lat_offset/lat_arc;
+    draw(x_offset,y_offset);
 };
 function panLeft() {
     mapCoords.x -= 1;
@@ -119,13 +132,15 @@ function tile2lat(y,z) {
     return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
 }
 
-function draw() {
-    var canvas = document.getElementById("canvas00");
+function draw(x,y) {
+    var canvas = document.getElementById("canvas11");
     canvas.height = 256;
     canvas.width = 256;
     var ctx = canvas.getContext("2d");
     ctx.beginPath();
-    ctx.moveTo(0,0);
-    ctx.lineTo(125,125);
+    ctx.moveTo(x*256,0);
+    ctx.lineTo(x*256,256);
+    ctx.moveTo(0,y * 256);
+    ctx.lineTo(256,y * 256);
     ctx.stroke();
 }
