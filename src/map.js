@@ -1,8 +1,17 @@
+const landmark = {
+    lat:39.706848,
+    lon: -75.110462
+}
+const crown = {
+    lat: 39.706184,
+    lon: -75.108006
+}
 var mapCoords = {
     x: 0,
     y: 0,
     zoom: 13
 };
+//TODO: transform via geocoords
 var geoCoords = {
     lat: 39.702892,
     lon: -75.111839,
@@ -16,6 +25,23 @@ function updateOrigin(lat,lon,zoom) {
     mapCoords.x = long2tile(lon,zoom);
     mapCoords.y = lat2tile(lat,zoom);
     mapCoords.zoom = zoom;
+}
+function request_path(point_a,point_b){
+    var request = new XMLHttpRequest();
+    //TODO:move to php
+    request.open('GET', `https://api.openrouteservice.org/v2/directions/foot-walking?api_key=5b3ce3597851110001cf62484bf1694d7cec49f6bb7482f9d4ac8153&start=${point_a.lon},${point_a.lat}&end=${point_b.lon},${point_b.lat}`);
+
+    request.setRequestHeader('Accept', 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8');
+
+    request.onreadystatechange = function () {
+        if (this.readyState === 4) {
+            console.log('Status:', this.status);
+            console.log('Headers:', this.getAllResponseHeaders());
+            console.log('Body:', this.responseText);
+        }
+    };
+
+    request.send();
 }
 function request_tile(x,y,zoom,element) {
     var request = new XMLHttpRequest();
@@ -40,6 +66,8 @@ function request_tile(x,y,zoom,element) {
 window.onload = function(){
     updateOrigin(geoCoords.lat,geoCoords.lon,geoCoords.zoom);
     loadMap();
+    request_path(landmark,crown);
+    draw();
 };
 function panLeft() {
     mapCoords.x -= 1;
@@ -58,7 +86,7 @@ function panDown() {
     loadMap();
 };
 function zoomIn() {
-    updateOrigin(tile2lat(mapCoords.y,mapCoords.zoom),tile2long(mapCoords.x,mapCoords.zoom),geoCoords.zoom + 1);
+    updateOrigin(tile2lat(mapCoords.y,mapCoords.zoom ),tile2long(mapCoords.x,mapCoords.zoom),geoCoords.zoom + 1);
     loadMap();
 }
 function zoomOut() {
@@ -86,4 +114,13 @@ function tile2long(x,z) {
 function tile2lat(y,z) {
     var n=Math.PI-2*Math.PI*y/Math.pow(2,z);
     return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
+}
+
+function draw() {
+    var canvas = document.getElementById("canvas00");
+    var ctx = canvas.getContext("2d");
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.lineTo(125,125);
+    ctx.stroke();
 }

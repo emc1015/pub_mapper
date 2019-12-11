@@ -1,0 +1,20 @@
+.tile_wrapper{
+    width: 256px;
+    height: 256px;
+    position: relative;
+}
+.tile_image{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top:0px;
+    left:0px;
+}
+.tile_canvas{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top:0px;
+    left:0px;
+    /*background-color: rgba(255, 0, 0, 0.1);*/
+}
