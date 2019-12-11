@@ -68,6 +68,9 @@ window.onload = function(){
     loadMap();
     request_path(landmark,crown);
     draw();
+    console.log(geoCoords);
+    console.log(tile2long(mapCoords.x,mapCoords.y),",",tile2lat(mapCoords.y,mapCoords.zoom));
+    console.log(geoCoords.lat - tile2lat(mapCoords.y));
 };
 function panLeft() {
     mapCoords.x -= 1;
@@ -118,6 +121,8 @@ function tile2lat(y,z) {
 
 function draw() {
     var canvas = document.getElementById("canvas00");
+    canvas.height = 256;
+    canvas.width = 256;
     var ctx = canvas.getContext("2d");
     ctx.beginPath();
     ctx.moveTo(0,0);
