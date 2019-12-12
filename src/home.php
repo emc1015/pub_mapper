@@ -9,5 +9,6 @@
 <?php
 include 'header.php';
 ?>
+<?php include 'map.html' ?>
 </body>	
 </html>
